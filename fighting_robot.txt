@@ -1,0 +1,237 @@
+#include<Servo.h>
+Servo srv;
+#define in1 10
+#define in2 9
+#define enA 11
+#define in3 7
+#define in4 6
+#define enB 5
+#define trigPin 3
+#define echoPin 4
+#define maxDistance 60
+int po = 0;
+unsigned long startTime, stopTime;
+unsigned long myDesiredTime;
+int distance;
+void lookAround() {
+  srv.write(180);
+  delay(1000);
+  /*srv.write(90);
+    delay(1000);
+    srv.write(0);
+    delay(1000);
+    srv.write(90);*/
+
+}
+void offLeft()
+{
+
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+}
+void offRight()
+{
+
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+}
+void fulloff()
+{
+  offLeft();
+  offRight();
+}
+void turnRight() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+}
+void turnLeft() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+}
+void moveForward() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+}
+void moveBackward() {
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+}
+void setup() {
+  Serial.begin(9600);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(enA, OUTPUT);
+
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+  pinMode(enB, OUTPUT);
+
+  analogWrite(enA, 100); //set PWM to Motor 1
+  analogWrite(enB, 100);
+
+  srv.attach(12);
+  srv.write(90);
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+
+
+}
+int sonar_read()
+{
+  digitalWrite(trigPin, LOW);
+  delay(100);
+  digitalWrite(trigPin, HIGH);
+  delay(100);
+  digitalWrite(trigPin, LOW);
+  int distance = pulseIn(echoPin, HIGH);
+  distance = distance / 2 / 29;
+  return distance;
+
+}
+int sonar_read_avg()
+{
+
+  long long int sum = 0, ct = 0;
+  for (int j = 0; j < 10; j++)
+  {
+    digitalWrite(trigPin, LOW);
+    delay(100);
+    digitalWrite(trigPin, HIGH);
+    delay(100);
+    digitalWrite(trigPin, LOW);
+    int distance = pulseIn(echoPin, HIGH);
+    distance = distance / 2 / 29;
+    sum += distance;
+
+  }
+
+  return sum / 10;
+
+}
+bool right_check()
+{
+  srv.write(45);
+  distance = sonar_read();
+  delay(2000);
+  if (distance < maxDistance)
+  {
+    turnRight();
+    delay(300);
+    fulloff();
+    return true;
+  }
+  srv.write(0);
+  distance = sonar_read();
+  delay(2000);
+  if (distance < maxDistance)
+  {
+    turnRight();
+    delay(600);
+    fulloff();
+    return true;
+  }
+  return false;
+}
+bool left_check()
+{
+  srv.write(135);
+  distance = sonar_read();
+  delay(2000);
+  if (distance < maxDistance)
+  {
+    turnLeft();
+    delay(300);
+    fulloff();
+    return true;
+  }
+  srv.write(180);
+  distance = sonar_read();
+  delay(2000);
+  if (distance < maxDistance)
+  {
+    turnLeft();
+    delay(600);
+    fulloff();
+    return true;
+  }
+  return false;
+}
+bool strait_check()
+{
+  srv.write(90);
+  distance = sonar_read();
+  Serial.println(distance);
+  delay(1000);
+  if (distance < maxDistance)
+  {
+    fulloff();
+    return true;
+  }
+  return false;
+}
+void gari_colbe()
+{
+    srv.write(90);
+    int xx = sonar_read();
+    while (xx < maxDistance)
+    {
+      moveForward();
+      xx = sonar_read();
+    }
+    fulloff();
+}
+void loop() {
+  //digitalWrite(in1, LOW);
+  //digitalWrite(in2, HIGH);
+  //delay(500);
+  // moveForward();
+  //delay(500);
+  //turnRight();
+  //delay(500);
+  //turnLeft();
+  //delay(500);
+  //delay(500);
+  //Serial.println(sonar_read_avg());
+
+  
+  if (strait_check() == true)
+  {
+      gari_colbe();
+  }
+  else if(left_check() == true)
+  {
+      gari_colbe();
+  }
+  else if(strait_check() == true)
+  {
+      gari_colbe();
+  }
+  else if(right_check() == true)
+  {
+      gari_colbe();
+  }
+  else if (strait_check() == true)
+  {
+      gari_colbe();
+  }
+  else if(left_check() == true)
+  {
+      gari_colbe();
+  }
+  else
+  {
+      turnLeft();
+      delay(1000);
+      fulloff();
+      //srv.write(90);
+  }
+
+}
